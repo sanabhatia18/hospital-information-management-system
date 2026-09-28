@@ -1,1 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>HIMS | Doctor Dashboard</title>
+
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+
+<style>
+:root {
+    --bg: #080e14;
+    --sidebar: #0c141c;
+    --card: #111b24;
+    --card-hover: #14212b;
+    --border: #202d38;
+    --text: #edf3f7;
+    --muted: #82919f;
+    --accent: #42c8b6;
+    --accent-soft: rgba(66, 200, 182, .12);
+    --grid: #26333e;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+
+.layout {
+    min-height: 100vh;
+    display: flex;
+}
+
+.sidebar {
+    width: 235px;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    background: var(--sidebar);
+    border-right: 1px solid var(--border);
+    padding: 25px 17px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin-bottom: 35px;
+}
+
+.logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    display: grid;
+    place-items: center;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 21px;
+    font-weight: 800;
+}
+
+.brand-name {
+    font-size: 16px;
+    font-weight: 750;
+}
+
+.brand-subtitle {
+    color: var(--muted);
+    font-size: 10px;
+    margin-top: 3px;
+}
+
+.nav-title {
+    color: #5d6d7b;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin: 0 11px 9px;
+}
+
+.nav a {
+    display: block;
+    color: #8e9daa;
+    text-decoration: none;
+    padding: 11px;
+    margin: 4px 0;
+    border-radius: 9px;
+    font-size: 13px;
+}
+
+.nav a:hover,
+.nav a.active {
+    background: #16222c;
+    color: var(--text);
+}
+
+.nav a.active {
+    box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.connection {
+    position: absolute;
+    left: 17px;
+    right: 17px;
+    bottom: 22px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--card);
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.connection-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px rgba(66, 200, 182, .7);
+}
+
+.main {
+    width: calc(100% - 235px);
+    margin-left: 235px;
+    padding: 30px 34px 40px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.eyebrow {
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+h1 {
+    margin: 5px 0;
+    font-size: 30px;
+    letter-spacing: -.7px;
+}
+
+.subtitle {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.profile {
+    padding: 10px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.kpi {
+    background: linear-gradient(145deg, var(--card), #0e161e);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 19px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, .18);
+}
+
+.kpi-label {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 650;
+    letter-spacing: .7px;
+    text-transform: uppercase;
+}
+
+.kpi-value {
+    margin-top: 12px;
+    font-size: 28px;
+    line-height: 1;
+    font-weight: 750;
+}
+
+.kpi-note {
+    color: #607180;
+    font-size: 10px;
+    margin-top: 8px;
+}
+
+.charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.chart-card {
+    min-width: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.chart {
+    min-height: 390px;
+}
+
+.footer {
+    border-top: 1px solid var(--border);
+    margin-top: 22px;
+    padding-top: 18px;
+    text-align: center;
+    color: #566575;
+    font-size: 10px;
+}
+
+@media (max-width: 950px) {
+    .sidebar {
+        width: 70px;
+    }
+
+    .brand-name,
+    .brand-subtitle,
+    .nav-title,
+    .nav span,
+    .connection {
+        display: none;
+    }
+
+    .brand {
+        justify-content: center;
+    }
+
+    .nav a {
+        text-align: center;
+        font-size: 17px;
+    }
+
+    .main {
+        margin-left: 70px;
+        width: calc(100% - 70px);
+        padding: 24px;
+    }
+
+    .kpis {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 650px) {
+    .layout {
+        display: block;
+    }
+
+    .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+        padding: 12px;
+    }
+
+    .brand {
+        justify-content: flex-start;
+        margin-bottom: 10px;
+    }
+
+    .brand-name,
+    .brand-subtitle {
+        display: block;
+    }
+
+    .nav {
+        display: flex;
+        overflow-x: auto;
+    }
+
+    .nav a {
+        white-space: nowrap;
+        font-size: 12px;
+    }
+
+    .nav span {
+        display: inline;
+    }
+
+    .nav-title {
+        display: none;
+    }
+
+    .main {
+        margin: 0;
+        width: 100%;
+        padding: 18px 12px;
+    }
+
+    .profile {
+        display: none;
+    }
+
+    .kpis,
+    .charts {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+
+<aside class="sidebar">
+
+    <div class="brand">
+        <div class="logo">✚</div>
+
+        <div>
+            <div class="brand-name">HIMS</div>
+            <div class="brand-subtitle">Clinical Intelligence</div>
+        </div>
+    </div>
+
+    <div class="nav-title">Dashboard</div>
+
+    <nav class="nav">
+        <a class="active" href="#overview">◉ <span>Overview</span></a>
+        <a href="#demographics">◌ <span>Demographics</span></a>
+        <a href="#coverage">◒ <span>Coverage</span></a>
+        <a href="#doctors">♧ <span>Doctors</span></a>
+    </nav>
+
+    <div class="connection">
+        <span class="connection-dot"></span>
+        HIMS database connected
+    </div>
+
+</aside>
+
+
+<main class="main" id="overview">
+
+    <header class="header">
+
+        <div>
+            <div class="eyebrow">Clinical Analytics</div>
+            <h1>Doctor Dashboard</h1>
+
+            <div class="subtitle">
+                Patient population, insurance and doctor preference overview
+            </div>
+        </div>
+
+        <div class="profile">
+            Doctor Workspace
+        </div>
+
+    </header>
+
+
+    <section class="kpis">
+
+        <div class="kpi">
+            <div class="kpi-label">Total Patients</div>
+            <div class="kpi-value" id="totalPatients">—</div>
+            <div class="kpi-note">Unique patient IDs</div>
+        </div>
+
+        <div class="kpi">
+            <div class="kpi-label">Average Age</div>
+            <div class="kpi-value" id="averageAge">—</div>
+            <div class="kpi-note" id="ageRange">Patient age range</div>
+        </div>
+
+        <div class="kpi">
+            <div class="kpi-label">Insurance Rate</div>
+            <div class="kpi-value" id="insuranceRate">—</div>
+            <div class="kpi-note">Current patient population</div>
+        </div>
+
+        <div class="kpi">
+            <div class="kpi-label">Preferred Doctors</div>
+            <div class="kpi-value" id="preferredDoctors">—</div>
+            <div class="kpi-note">Unique doctor preferences</div>
+        </div>
+
+    </section>
+
+
+    <section class="charts" id="demographics">
+
+        <div class="chart-card">
+            <div id="genderChart" class="chart"></div>
+        </div>
+
+        <div class="chart-card">
+            <div id="maritalChart" class="chart"></div>
+        </div>
+
+        <div class="chart-card" id="coverage">
+            <div id="insuranceChart" class="chart"></div>
+        </div>
+
+        <div class="chart-card" id="doctors">
+            <div id="doctorChart" class="chart"></div>
+        </div>
+
+    </section>
+
+
+    <footer class="footer">
+        HIMS Doctor Dashboard · HTML + CSS + Plotly
+    </footer>
+
+</main>
+
+</div>
+
+
+<script>
+const theme = {
+    paper_bgcolor: "#111b24",
+    plot_bgcolor: "#111b24",
+    font: {
+        color: "#edf3f7",
+        family: 'Inter, "Segoe UI", Arial, sans-serif'
+    },
+    gridcolor: "#26333e",
+    muted: "#82919f"
+};
+
+const config = {
+    responsive: true,
+    displaylogo: false,
+    modeBarButtonsToRemove: ["lasso2d", "select2d"]
+};
+
+function baseLayout(title) {
+    return {
+        ...theme,
+        title: {
+            text: title,
+            x: 0.03,
+            font: {
+                size: 16,
+                color: "#edf3f7"
+            }
+        },
+        margin: {
+            l: 35,
+            r: 25,
+            t: 58,
+            b: 35
+        },
+        xaxis: {
+            showgrid: false,
+            zeroline: false,
+            tickfont: {color: "#82919f"}
+        },
+        yaxis: {
+            showgrid: true,
+            gridcolor: "#26333e",
+            zeroline: false,
+            tickfont: {color: "#82919f"}
+        },
+        legend: {
+            bgcolor: "rgba(0,0,0,0)",
+            font: {color: "#82919f"}
+        }
+    };
+}
+
+async function loadDashboard() {
+
+    const response = await fetch("/api/dashboard-data");
+    const data = await response.json();
+
+    // KPIs
+    document.getElementById("totalPatients").textContent =
+        data.kpis.total_patients.toLocaleString();
+
+    document.getElementById("averageAge").textContent =
+        data.kpis.average_age.toFixed(1);
+
+    document.getElementById("ageRange").textContent =
+        `Range ${data.kpis.minimum_age}–${data.kpis.maximum_age} years`;
+
+    document.getElementById("insuranceRate").textContent =
+        `${data.kpis.insurance_rate.toFixed(1)}%`;
+
+    document.getElementById("preferredDoctors").textContent =
+        data.kpis.preferred_doctors.toLocaleString();
+
+
+    // Gender
+    Plotly.newPlot(
+        "genderChart",
+        [{
+            x: data.gender.map(x => x.gender),
+            y: data.gender.map(x => x.patients),
+            type: "bar",
+            text: data.gender.map(x => x.patients),
+            textposition: "outside",
+            marker: {
+                color: "#42c8b6"
+            },
+            hovertemplate:
+                "<b>%{x}</b><br>Patients: %{y}<extra></extra>"
+        }],
+        baseLayout("Patients by Gender"),
+        config
+    );
+
+
+    // Gender vs marital status
+    const maritalGroups =
+        [...new Set(data.gender_marital.map(x => x.marital_status))];
+
+    const maritalTraces = maritalGroups.map(status => {
+
+        const rows = data.gender_marital.filter(
+            x => x.marital_status === status
+        );
+
+        return {
+            x: rows.map(x => x.gender),
+            y: rows.map(x => x.patients),
+            name: status,
+            type: "bar",
+            hovertemplate:
+                "<b>%{x}</b><br>Patients: %{y}<extra>" +
+                status +
+                "</extra>"
+        };
+    });
+
+    Plotly.newPlot(
+        "maritalChart",
+        maritalTraces,
+        {
+            ...baseLayout("Gender & Marital Status"),
+            barmode: "group"
+        },
+        config
+    );
+
+
+    // Insurance
+    Plotly.newPlot(
+        "insuranceChart",
+        [{
+            labels: data.insurance.map(x => x.has_insurance),
+            values: data.insurance.map(x => x.patients),
+            type: "pie",
+            hole: 0.64,
+            textinfo: "percent+label",
+            marker: {
+                line: {
+                    color: "#111b24",
+                    width: 3
+                }
+            },
+            hovertemplate:
+                "<b>%{label}</b><br>Patients: %{value}<extra></extra>"
+        }],
+        {
+            ...baseLayout("Insurance Coverage"),
+            showlegend: false
+        },
+        config
+    );
+
+
+    // Department vs preferred doctor
+    const doctorGroups =
+        [...new Set(data.doctor_department.map(
+            x => x.preferred_doctor
+        ))];
+
+    const doctorTraces = doctorGroups.map(doctor => {
+
+        const rows = data.doctor_department.filter(
+            x => x.preferred_doctor === doctor
+        );
+
+        return {
+            x: rows.map(x => x.department),
+            y: rows.map(x => x.patients),
+            name: doctor,
+            type: "bar",
+            hovertemplate:
+                "<b>%{x}</b><br>Patients: %{y}<extra>" +
+                doctor +
+                "</extra>"
+        };
+    });
+
+    Plotly.newPlot(
+        "doctorChart",
+        doctorTraces,
+        {
+            ...baseLayout("Department & Preferred Doctor"),
+            barmode: "group"
+        },
+        config
+    );
+}
+
+loadDashboard().catch(error => {
+    console.error(error);
+
+    document.querySelector(".subtitle").textContent =
+        "Unable to load dashboard data. Make sure Flask is running with: python app.py";
+});
+</script>
+
+</body>
+</html>
